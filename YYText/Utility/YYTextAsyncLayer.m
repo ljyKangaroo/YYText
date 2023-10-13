@@ -14,7 +14,7 @@
 
 
 /// Global display queue, used for content rendering.
-static dispatch_queue_t YYTextAsyncLayerGetDisplayQueue() {
+static dispatch_queue_t YYTextAsyncLayerGetDisplayQueue(void) {
 #define MAX_QUEUE_COUNT 16
     static int queueCount;
     static dispatch_queue_t queues[MAX_QUEUE_COUNT];
@@ -125,12 +125,15 @@ static dispatch_queue_t YYTextAsyncLayerGetReleaseQueue() {
         if (task.didDisplay) task.didDisplay(self, YES);
         return;
     }
-    
+    if (self.bounds.size.width <=0 || self.bounds.size.height <=0) {
+        self.contents = nil;
+        return;
+    }
     if (async) {
         if (task.willDisplay) task.willDisplay(self);
         _YYTextSentinel *sentinel = _sentinel;
         int32_t value = sentinel.value;
-        BOOL (^isCancelled)() = ^BOOL() {
+        BOOL (^isCancelled)(void) = ^BOOL(void) {
             return value != sentinel.value;
         };
         CGSize size = self.bounds.size;
